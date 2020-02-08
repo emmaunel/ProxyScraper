@@ -6,12 +6,9 @@ package main
 //import QoQuery (JQuery for GO)
 import (
 	"bufio"
-	"debug/dwarf"
 	"github.com/PuerkitoBio/goquery"
-	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 //main
@@ -19,7 +16,7 @@ func main() {
 	//stores address:port
 	var proxies []String
 
-	//TODO Make HTTP Get request with link
+	//Make HTTP Get request with link
 	//TODO HOW DOES THIS RETURN
 	content, badOut := http.Get("https://api.proxyscrape.com/?request=displayproxies&proxytype=all&timeout=7000&country=all&anonymity=elite&ssl=yes")
 
@@ -35,7 +32,7 @@ func main() {
 	scanner := bufio.NewScanner(page)
 	scanner.Split(bufio.ScanLines)
 
-	//scan lines into array
+	//scan lines into slice
 	for scanner.Scan() {
 		proxies = append(proxies, scanner.Text())
 	}
