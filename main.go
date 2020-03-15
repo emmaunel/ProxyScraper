@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
-	"flag"
 	"os"
 	"bufio"
-	"sync"
 	"time"
+	"github.com/akamensky/argparse"
 	)
 
 var red = "\033[1;31m"
@@ -37,6 +37,19 @@ func showBanner() {
 	fmt.Println(banner)
 }
 
+func isValidUrl(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(toTest)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+
+	return true
+}
 func info(msg string) string{
 	return red + "[" + green + "+" + red + "] - " + defcol + msg
 }
@@ -78,31 +91,60 @@ func scraper(url string, outfile *os.File) {
 	}
 }
 
-func main(){
-	// go run main.go -o outfile.txt -i inputfile.txt 
-	// Need more options
-	// --check: status of the proxy, alive or dead
-	// --chain: linked list of proxy to direct traffic
+func isAlive(url string) bool {
+	return true
+}
 
+func main(){
 	// 1) read file from users -- DONE
-	// 2) For each line in the file(verify if it is a url)
-	// 2A) CHECK IF URL IS "ALIVE" -- Sort of
+	// 2) For each line in the file(verify if it is a url) -- DONE
+	// 2A) CHECK IF URL IS "ALIVE" 
 	// 3) Create a thread for each line -- DONE
 	// 4) then run the scraper -- DONE
 
+
 	// Argument Parsing
-	inputfile := flag.String("i", "proxylist.txt", "a list of proxy in a text file")
-	outfile := flag.String("o", "good_proxy.txt", "Results will be stored here")
-	flag.Parse()
+	parser := argparse.NewParser("Proxy Scraper", "Proxy Scraper implemented in golang. By PabloPotat0")
+	inputfile := parser.String("i", "inputfile", &argparse.Options{Help: "Proxy websites to scrap"})
+	outfile := parser.String("o", "outfile", &argparse.Options{Help: "Good proxies will be stored here"})
+	check := parser.Flag("", "check", &argparse.Options{Help: "status of the proxy, alive or dead"})
+	chain := parser.String("", "chain", &argparse.Options{Help: "linked list of proxy to direct traffic"})
+
+	// Parse input
+	err := parser.Parse(os.Args)
+	if err != nil {
+		// In case of error print error and print usage
+		// This can also be done by passing -h or --help flags
+		fmt.Print(parser.Usage(err))
+	}
+	
+	// error checking
+	if *inputfile == "" {
+		fmt.Println(error("input file not specified. Using default file: proxylist.txt"))
+		*inputfile = "proxylist.txt"
+	} 
+	
+	if *outfile == ""{
+		fmt.Println(error("output file not specified. Using default file: good_proxy.txt"))
+		*outfile = "good_proxy.txt"
+	}
+
+	fmt.Println(*check)
+	if *check {
+		fmt.Println("what am in?? ", *check)
+		//call the isAlive()
+	}
+
+	if *chain == "" {
+		fmt.Println("Under construction ")
+	}
 
 	// Create outfile
 	good, _ := os.Create(*outfile)
 
 	// Banner - duh
-	showBanner()
+	// showBanner()
 
-	fmt.Println("input: ", *inputfile)
-	fmt.Println("output: ", *outfile)
 	fmt.Println("Let's begin scraping....")
 
 	file, err := os.Open(*inputfile)
@@ -113,8 +155,13 @@ func main(){
 	
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		go scraper(scanner.Text(), good)
-		time.Sleep(time.Second)
+		//Url validator
+		if isValidUrl(scanner.Text()) {
+			go scraper(scanner.Text(), good)
+			time.Sleep(time.Second)
+		}else{
+			fmt.Printf(error("%s is not a valid url\n"), scanner.Text())
+		}
 	}
 
 	good.Close()
