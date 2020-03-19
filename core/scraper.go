@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
+	"net/url"
+	// "net/http/httputil"
+	// "crypto/tls"
 	"regexp"
 	"time"
 )
 
+const timeout time.Duration = 10
+
 var httpRe = regexp.MustCompile(`([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*?(\d{1,5}).*?([A-Z][A-Z]).*?(\bno).*?(\bno|\byes)`)
+var httpsRe = regexp.MustCompile(`([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*?(\d{1,5}).*?([A-Z][A-Z]).*?(\bno).*?(\bno|\byes)`)
 var socksRe = regexp.MustCompile(`([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*?(\d{1,5}).*?(Socks.?).*?`)
 var ip string
 var port string
@@ -24,8 +30,7 @@ func showStatus() {
 //// Desrciption: Find a byunch of proxy and creates a proxy chaing between them and direct your chain between them.
 
 
-func Http_proxies(){
-	// fmt.Println("In the core package....")
+func Http_proxies(check bool){
 	resp, err := http.Get("https://free-proxy-list.net")
 
 	if err != nil {
@@ -50,6 +55,8 @@ func Http_proxies(){
 	 **/
 	for _, proxy := range results {
 			for i, j := range proxy {
+				// TODO: Check if the last element in the array is yes
+				// yes indicates it is a https. We don't want that in this function
 				if i == 1{
 					ip = j
 				} else if i == 2{
@@ -61,17 +68,50 @@ func Http_proxies(){
 			}
 			fmt.Println(color.PrintProxy(ip, port, "HTTP"))
 			fmt.Println("Location: " + country)
+			if check {
+				fmt.Println(check)
+				isAlive("http", ip, port)
+			}
 			time.Sleep(time.Second / 2) // Uncomment if you want to be fast
 
 	}
 }
 
-func HttpsProxies(){
+func HttpsProxies(check bool){
+	resp, err := http.Get("https://www.sslproxies.org")
 
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+
+	// Regex in go sucks. It doesn't parse regex group well
+	// This is the best I could come up with
+	results := httpsRe.FindAllStringSubmatch(string(body), -1)
+
+	for _, proxy := range results {
+		for i, j := range proxy {
+			if i == 1{
+				ip = j
+			} else if i == 2{
+				port = j
+			} 
+	// 		// fmt.Println(j)
+		}
+		fmt.Println(color.PrintProxy(ip, port, "HTTPS"))
+		time.Sleep(time.Second / 2) // Uncomment if you want to be fast
+		if check {
+			fmt.Println(check)
+			// isAlive("https", ip, port)
+		}
+	}
 }
 
 func SocksProxies(){
-	fmt.Println("In the core package....")
 	resp, err := http.Get("https://www.socks-proxy.net")
 
 	if err != nil {
@@ -102,6 +142,45 @@ func SocksProxies(){
 }
 
 
-func isAlive(){
-	
+// This function is really slow. maybe I have to set a timeout 
+func isAlive(protocol string, ip string, port string){
+	proxyStr := protocol + "://" + ip + ":" + port
+	proxyUrl, err := url.Parse(proxyStr)
+	fmt.Println(proxyUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	urlStr := "https://ispycode.com/web/hello.html"
+	// urlStr := "https://api.ipify.org/"
+
+	//adding the proxy settings to the Transport object
+	transpot := &http.Transport { Proxy: http.ProxyURL(proxyUrl),
+								// TLSClientConfig: &tls.Config{},
+	 }
+	//adding the Transport object to the http Client
+	client	:= &http.Client { Transport: transpot,
+							// Timeout:   time.Duration(2 * time.Second),
+						}
+
+	//generating the HTTP GET request
+	request, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	//printing the request to the console
+	// dump, _ := httputil.DumpRequest(request, false)
+	// fmt.Println(string(dump))
+
+	//calling the URL
+	response, err := client.Do(request)
+	if err != nil {
+		panic(err)
+	}
+
+
+	fmt.Println(response.StatusCode)
+	// data, _ := ioutil.ReadAll(response.Body)
+	// fmt.Println("Alive: ", string(data))
 }

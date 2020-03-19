@@ -154,7 +154,6 @@ func main(){
 	parser := argparse.NewParser("Proxy Scraper", "Proxy Scraper implemented in golang. By PabloPotat0")
 	outfile := parser.String("o", "outfile", &argparse.Options{Help: "Good proxies will be stored here"})
 	check := parser.Flag("", "check", &argparse.Options{Help: "status of the proxy, alive or dead"})
-	chain := parser.String("", "chain", &argparse.Options{Help: "linked list of proxy to direct traffic"})
 	// TODO: Only takes in one filter as one
 	filter := parser.Selector("f", "filter", []string{"http", "https", "socks"}, &argparse.Options{Help: "Filter the type of proxy you want"})
 
@@ -173,26 +172,18 @@ func main(){
 		*outfile = "good_proxy.txt"
 	}
 
-	fmt.Println(*check)
-	if *check {
-		fmt.Println("what am in?? ", *check)
-		//call the isAlive()
-	}
+	fmt.Printf(color.ShowInfo("Proxy-Checking: %v\n"), *check)
 
-	if *chain == "" {
-		fmt.Println("Under construction ")
-	}
-
-
-	fmt.Println("Let's begin scraping....")
+	fmt.Println(color.ShowInfo("Let's begin scraping...."))
 	if *filter == "" {
 		fmt.Println(color.ShowWarning("No filter was specified. Defaulting to http"))
-		test.Http_proxies()
+		test.Http_proxies(*check)
 	}else if *filter == "http" {
 		fmt.Println(color.ShowInfo("Applied filter: http"))
-		test.Http_proxies()
+		test.Http_proxies(*check)
 	}else if *filter == "https"{
 		fmt.Println(color.ShowInfo("Applied filter: https"))
+		test.HttpsProxies(*check)
 	}else if *filter == "socks"{
 		fmt.Println(color.ShowInfo("Applied filter: socks"))
 		test.SocksProxies()

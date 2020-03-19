@@ -3,18 +3,17 @@ A fast & simple proxy scraper in golang
 
 ## Features
 - Scarpes for proxies, obvisiouly
-- checks proxies speeds(speed depends on your network connections)
+- checks proxies status
 - Tells you the location of the proxy
 
 ## Installation
 
 ## TODO
 - [x] Find proxies
-- [ ] Find the type of proxy
-- [ ] test speeds
-- [ ] Chain proxies together based on the second bullet point
-- [ ] Encrypt traffic???
-- [ ] Look into socks proxies
+- [x] Find the type of proxy
+- [ ] Chain proxies together based on the second bullet point (proxy chains)
+- [x] Encrypt traffic???(ha ha why? then it is a vpn)
+- [x] socks proxies
 - [ ] Export proxies automatically to proxychains config
 - [ ] Have option to scrape/test proxies through Tor
 
