@@ -1,6 +1,20 @@
 package colors
 
 
+
+var red = "\033[1;31m"
+var green = "\033[8;32m"
+var yellow = "\033[1;33m"
+var defcol = "\033[0m"
+
+func info(text string) string {
+	return red + "[" + defcol + getGreen(text) + red + "]" + defcol 
+}
+
+func getGreen(text string) string {
+	return green + text + defcol
+}
+
 // def getWhite(text):
 //     return "\033[1;37m" + text + "\033[0m"
 
@@ -31,6 +45,11 @@ package colors
 // def showError(text):
 //     print(getRed("[-]"), text)
 
-func info(text string) string {
-	return "\033[1;36;40m " + text + " \033[0m"
+// func info(text string) string {
+// 	return "\033[1;36;40m " + text + " \033[0m"
+// }
+
+
+func PrintProxy(ip string, port string, protocolType string) string {
+	return info(protocolType) + " " + ip + ":" + port
 }

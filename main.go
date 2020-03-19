@@ -1,14 +1,16 @@
 package main
 
 import (
+	test "./core"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	// "net/http/httputil"
 	"regexp"
 	"os"
-	"bufio"
-	"time"
+	// "bufio"
+	// "time"
 	"github.com/akamensky/argparse"
 	"strings"
 	"encoding/json"
@@ -150,12 +152,15 @@ func scraper(url string, outfile *os.File) {
 		fmt.Println(error("Page doesn't exist"))
 	}else{
 		results := re.FindAllString(string(body), -1)
+		// fmt.Println("amian")
+		// fmt.Println(results)
 		if len(results) == 0 {
 			fmt.Println(error("No proxy was found on "), url)
 		}else {
 			fmt.Printf(info("Found %d on %s\n"), len(results), url)
 			// write to a file
 			for _, proxy := range results {
+				// isAlive(proxy)
 				splitProxy := strings.Split(proxy, ":")
 				location := getlocation(splitProxy[0])
 				fmt.Printf("Current proxy: %s, location: %s\n", proxy, location)
@@ -170,15 +175,20 @@ func scraper(url string, outfile *os.File) {
 }
 
 /**
-* Parameter: url --> string
+* Parameter: proxyString --> string
 * Description: Test if the proxy works by making a request to google.com. if the request code is 200
 * 			   then we know it is valid. If otherwise, then we discard it.
 **/
-func isAlive(url string) bool {
+func isAlive(proxyString string) bool {
 	// Need to set HTTP_PROXY 
 
-	var PTransport = &http.Transport { Proxy: http.ProxyFromEnvironment }
-	client	:= http.Client { Transport: PTransport }
+	proxyUrl, err := url.Parse("http://"+ proxyString)
+	if err != nil {
+		panic(err)
+	}
+
+	transpot := &http.Transport { Proxy: http.ProxyURL(proxyUrl) }
+	client	:= http.Client { Transport: transpot }
 
 	req, err := http.NewRequest("GET", "http://www.google.com", nil)
 	if err != nil {
@@ -189,6 +199,9 @@ func isAlive(url string) bool {
 	if err != nil {
 		panic(err)
 	}
+
+	data, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("Alive: ", data)
 
 	defer resp.Body.Close()
 
@@ -216,6 +229,7 @@ func main(){
 	outfile := parser.String("o", "outfile", &argparse.Options{Help: "Good proxies will be stored here"})
 	check := parser.Flag("", "check", &argparse.Options{Help: "status of the proxy, alive or dead"})
 	chain := parser.String("", "chain", &argparse.Options{Help: "linked list of proxy to direct traffic"})
+	filter := parser.Selector("f", "filter", []string{"http", "https", "sock4", "sock5"}, &argparse.Options{Help: "Filter the type of proxy you want"})
 
 	// Parse input
 	err := parser.Parse(os.Args)
@@ -246,32 +260,59 @@ func main(){
 		fmt.Println("Under construction ")
 	}
 
+	if filter == nil {
+
+	}
+
 	// Create outfile
-	good, _ := os.Create(*outfile)
+	// good, _ := os.Create(*outfile)
 
 	// Banner - duh
-	showBanner()
+	// showBanner()
 
 	fmt.Println("Let's begin scraping....")
+	test.Http_proxies()
+	// scraper("http://globalproxies.blogspot.com/", good)
 
-	file, err := os.Open(*inputfile)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer file.Close()
+	// file, err := os.Open(*inputfile)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// defer file.Close()
 	
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		//Url validator
-		if isValidUrl(scanner.Text()) {
-			go scraper(scanner.Text(), good)
-			time.Sleep(time.Second)
-		}else{
-			fmt.Printf(error("%s is not a valid url\n"), scanner.Text())
-		}
-	}
+	// scanner := bufio.NewScanner(file)
+	// for scanner.Scan() {
+	// 	//Url validator
+	// 	if isValidUrl(scanner.Text()) {
+	// 		go scraper(scanner.Text(), good)
+	// 		time.Sleep(time.Second)
+	// 	}else{
+	// 		fmt.Printf(error("%s is not a valid url\n"), scanner.Text())
+	// 	}
+	// }
 
-	good.Close()
+	// proxyUrl, err := url.Parse("https://204.19.23.231")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// transpot := &http.Transport { Proxy: http.ProxyURL(proxyUrl) }
+	// client	:= http.Client { Transport: transpot }
+
+	// req, err := http.NewRequest("GET", "https://api.ipify.org/", nil)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// resp, err := client.Do(req)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// data, _ := ioutil.ReadAll(resp.Body)
+	// fmt.Println("Alive: ", data)
+
+	// good.Close()
 	fmt.Println("Ending")
 }
 

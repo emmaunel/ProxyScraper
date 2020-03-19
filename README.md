@@ -10,6 +10,7 @@ A fast & simple proxy scraper in golang
 
 ## TODO
 - [x] Find proxies
+- [ ] Find the type of proxy
 - [ ] test speeds
 - [ ] Chain proxies together based on the second bullet point
 - [ ] Encrypt traffic???
