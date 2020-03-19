@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"io/ioutil"
 	"regexp"
+	"time"
 )
 
 var httpRe = regexp.MustCompile(`([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*?(\d{1,5}).*?([A-Z][A-Z]).*?(\bno).*?(\bno|\byes)`)
+var socksRe = regexp.MustCompile(`([\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}).*?(\d{1,5}).*?(Socks.?).*?`)
 var ip string
 var port string
 var country string
@@ -23,7 +25,7 @@ func showStatus() {
 
 
 func Http_proxies(){
-	fmt.Println("In the core package....")
+	// fmt.Println("In the core package....")
 	resp, err := http.Get("https://free-proxy-list.net")
 
 	if err != nil {
@@ -57,9 +59,49 @@ func Http_proxies(){
 				}
 				// fmt.Println(j)
 			}
-			// fmt.Println("does it work: ", ip)
 			fmt.Println(color.PrintProxy(ip, port, "HTTP"))
 			fmt.Println("Location: " + country)
+			time.Sleep(time.Second / 2) // Uncomment if you want to be fast
 
 	}
+}
+
+func HttpsProxies(){
+
+}
+
+func SocksProxies(){
+	fmt.Println("In the core package....")
+	resp, err := http.Get("https://www.socks-proxy.net")
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+
+	// Regex in go sucks. It doesn't parse regex group well
+	// This is the best I could come up with
+	results := socksRe.FindAllStringSubmatch(string(body), -1)
+
+	for _, proxy := range results {
+		for i, j := range proxy {
+			if i == 1{
+				ip = j
+			} else if i == 2{
+				port = j
+			} 
+	// 		// fmt.Println(j)
+		}
+		fmt.Println(color.PrintProxy(ip, port, "Sock4"))
+		time.Sleep(time.Second / 2) // Uncomment if you want to be fast
+	}
+}
+
+
+func isAlive(){
+	
 }
