@@ -19,8 +19,7 @@ A fast & simple proxy scraper in golang
 
 
 ## Bugs
-- [ ] Fixed dulipcate proxies in the outfile
-- [ ] Scraper finishes before location if received. (threading problem, i think)
+
 
 ## Contribute
 

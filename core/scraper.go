@@ -29,6 +29,9 @@ func showStatus() {
 /// Name: Proxy scraper/Chain
 //// Desrciption: Find a byunch of proxy and creates a proxy chaing between them and direct your chain between them.
 
+// https://stackoverflow.com/questions/40328025/tcp-connection-over-tor-in-golang
+// Running the scraper through tor
+
 
 func Http_proxies(check bool){
 	resp, err := http.Get("https://free-proxy-list.net")
@@ -70,7 +73,6 @@ func Http_proxies(check bool){
 			fmt.Println("Location: " + country)
 			if check {
 				fmt.Println(check)
-				isAlive("http", ip, port)
 			}
 			time.Sleep(time.Second / 2) // Uncomment if you want to be fast
 
@@ -141,46 +143,3 @@ func SocksProxies(){
 	}
 }
 
-
-// This function is really slow. maybe I have to set a timeout 
-func isAlive(protocol string, ip string, port string){
-	proxyStr := protocol + "://" + ip + ":" + port
-	proxyUrl, err := url.Parse(proxyStr)
-	fmt.Println(proxyUrl)
-	if err != nil {
-		panic(err)
-	}
-
-	urlStr := "https://ispycode.com/web/hello.html"
-	// urlStr := "https://api.ipify.org/"
-
-	//adding the proxy settings to the Transport object
-	transpot := &http.Transport { Proxy: http.ProxyURL(proxyUrl),
-								// TLSClientConfig: &tls.Config{},
-	 }
-	//adding the Transport object to the http Client
-	client	:= &http.Client { Transport: transpot,
-							// Timeout:   time.Duration(2 * time.Second),
-						}
-
-	//generating the HTTP GET request
-	request, err := http.NewRequest("GET", urlStr, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	//printing the request to the console
-	// dump, _ := httputil.DumpRequest(request, false)
-	// fmt.Println(string(dump))
-
-	//calling the URL
-	response, err := client.Do(request)
-	if err != nil {
-		panic(err)
-	}
-
-
-	fmt.Println(response.StatusCode)
-	// data, _ := ioutil.ReadAll(response.Body)
-	// fmt.Println("Alive: ", string(data))
-}

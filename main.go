@@ -153,6 +153,7 @@ func main(){
 	// Argument Parsing
 	parser := argparse.NewParser("Proxy Scraper", "Proxy Scraper implemented in golang. By PabloPotat0")
 	outfile := parser.String("o", "outfile", &argparse.Options{Help: "Good proxies will be stored here"})
+	export := parser.Selector("e", "export", []string{"text", "proxychains"}, &argparse.Options{Help: "Type of export file you want"})
 	check := parser.Flag("", "check", &argparse.Options{Help: "status of the proxy, alive or dead"})
 	// TODO: Only takes in one filter as one
 	filter := parser.Selector("f", "filter", []string{"http", "https", "socks"}, &argparse.Options{Help: "Filter the type of proxy you want"})
